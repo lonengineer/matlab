@@ -15,5 +15,6 @@ if(nargout==0)
     xlabel('\omega','FontWeight','bold')
     if nargin >= 3
         xlim([-axis_limit axis_limit]);
+    end
 end
 end
