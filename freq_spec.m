@@ -1,4 +1,4 @@
-function [f w] = freq_spec(signal, sampling_rate)
+function [f w] = freq_spec(signal,sampling_rate)
 %FREQ_SPEC plots frequency spectrum of a provided signal
     % FREQ_SPEC(signal,samping_rate),   signal is the signal whose spectrum is to be plotted and sampling_rate is number of samples taken
     % This function fails if the sampling rate is low and frequency is very high (comparitively)
