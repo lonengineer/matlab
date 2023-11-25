@@ -17,7 +17,7 @@ function rootlocus(G)
  %    gain K varies from 0 to Inf.  rootlocus automatically generates a set of 
  %    positive gain values that produce a smooth plot.  
 
- 
+ni = nargin;
 if ni==0,
     if no~=0,  error('Missing input argument(s).'),  end
     eval('exresp(''rlocus'');')
