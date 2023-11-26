@@ -25,4 +25,4 @@ To use the functions in this repository, you need to have MATLAB installed on yo
 1. Clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/your-username/matlab-signal-control.git
+   git clone https://github.com/voltvirtuoso/MATLAB.git
