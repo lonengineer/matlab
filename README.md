@@ -7,11 +7,6 @@ This repository contains a collection of MATLAB functions for signal processing,
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
-- [Usage](#usage)
-  - [Signal Processing](#signal-processing)
-  - [Control Systems](#control-systems)
-  - [Labeling](#labeling)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Getting Started
