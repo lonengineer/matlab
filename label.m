@@ -5,15 +5,11 @@ function label(Title, Xlabel, Ylabel)
 % Ylabel is y-axis label
 % LABEL with no arguments sets title as PLOT, x-axis as Time (s), y-axis as
 % Amplitude
-    if nargin<1
-        Title = 'PLOT';
-        Xlabel = 'Time (s)';
-        Ylabel = 'Amplitude';
-    elseif nargin<2
-        Xlabel = 'Time (s)';
-        Ylabel = 'Amplitude';
-    elseif nargin<3
-        Ylabel = 'Amplitude';
+
+    arguments
+        Title (1,:) {mustBeText} = 'Plot'
+        Xlabel (1,:) {mustBeText} = 'Time (s)'
+        Ylabel (1,:) {mustBeText} = 'Amplitude'
     end
     title(Title);
     xlabel(Xlabel);
