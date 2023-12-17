@@ -30,19 +30,19 @@ title 'Asymtotic Bode Plot'
 ylabel 'Gain (dB)'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-m_phase = n*45;
+m_phase = n*65;
 x_phase{length(wn)}=0; y_phase{length(wn)}=0;
 for i = 1:length(wn)
     x_phase{i} = logspace(log10(lim(1)),log10(lim(2)),1000);
     if wn(i)==0
-        y_phase{i} = ones(size(x_phase{i}))*2*m_phase;
+        y_phase{i} = ones(size(x_phase{i}))*2*n*45;
     else
         k = log10(wn(i));
-        k = [10^(k-1) 10^(k+1)];
-        b(i) = 0-m_phase*log10(k(1));
+        k = [10^(k-1+0.301) 10^(k+1-0.3)];
+        b(i) = 0-m_phase*log10(k(1))
         y_phase{i} = m_phase*log10(x_phase{i})+b(i);
         y_phase{i}(x{i}<k(1)) = 0;
-        y_phase{i}(x{i}>k(2)) = 2*m_phase;
+        y_phase{i}(x{i}>k(2)) = n*90;
 
     end
     
