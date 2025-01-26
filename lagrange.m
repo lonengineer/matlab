@@ -1,8 +1,9 @@
 function L = lagrange(points, value, options)
-%LAGRANGE Function
-% This function computes the Lagrange polynomial for a given set of points,
-% evaluates it at a specific value (optional), and provides additional
-% features like error bound calculation and visualization.
+%LAGRANGE Construct and evaluate Lagrange interpolation polynomial
+%
+%   Computes the Lagrange interpolating polynomial for given data points,
+%   evaluates it at specified locations, and provides error estimation
+%   with visualization options.
 %
 % Syntax:
 %   L = lagrange(points)
@@ -10,149 +11,131 @@ function L = lagrange(points, value, options)
 %   L = lagrange(points, value, options)
 %
 % Inputs:
-%   points (:, 2) - A matrix where each row represents a data point (x, y).
-%                   Example: [1, 2; 2, 4; 3, 6]
-%
-%   value (optional) - The x-coordinate at which to evaluate the polynomial.
-%                      Default is '' (no evaluation). It simply return
-%                      polynomial.
-%
-%   options (optional) - A struct with the following fields:
-%       showPlot (logical) - Whether to display a plot of the polynomial
-%                            and the points. Default: false.
-%       xaxis (1, :)       - A vector defining the x-axis range for plotting.
-%                            Default: auto-generated based on points.
-%       calcError (logical) - Whether to calculate the interpolation error.
-%                             Default: false.
-%       expression (sym)   - The original symbolic function for error
-%                            calculation. Required if calcError is true.
+%   points  - (N×2 numeric) Matrix of [x, y] data points
+%   value   - (numeric) Optional evaluation point(s)
+%   options - Name-value arguments:
+%       showPlot     - Plot polynomial and points [false|true]
+%       xaxis        - Custom x-range for plotting [auto-generated]
+%       calcError    - Calculate error bound [false|true]
+%       expression   - (symbolic) Original function for error calculation
+%       showDetailed - Display computation details [false|true]
 %
 % Outputs:
-%   L - The symbolic Lagrange polynomial or its evaluated value if 'value' 
-%       is specified.
+%   L - (symbolic/double) Polynomial or evaluated value
 %
-% Example Usage:
-%   % Define points
-%   points = [1, 2; 2, 4; 3, 6];
+% Examples:
+%   % Basic interpolation
+%   pts = [1 1; 2 4; 3 9];
+%   P = lagrange(pts);
 %   
-%   % Interpolation with plot
-%   L = lagrange(points, '', struct('showPlot', true));
+%   % Evaluate at specific point with error estimation
+%   syms x;
+%   L = lagrange(pts, 2.5, 'showDetailed', true, ...
+%                'calcError', true, 'expression', x^2);
 %
-%   % Interpolation with value evaluation
-%   L_at_2_5 = lagrange(points, 2.5);
-%
-%   % Interpolation with error bound calculation
-%   expr = @(x) x^2; % Original function
-%   options = struct('calcError', true, 'expression', expr);
-%   L = lagrange(points, calcError=true, expression=expr);
+%   % Plot interpolation
+%   lagrange(pts, [], 'showPlot', true);
 
 arguments
-    points (:, 2)
-    value = ''
-    options.showPlot = false
-    options.xaxis (1,:) = [points(1,1):(1/10)*(points(2,1)-points(1,1)): points(end,1)]
+    points (:,2) double
+    value {mustBeNumeric} = []
+    options.showPlot (1,1) logical = false
+    options.xaxis (1,:) double = linspace(min(points(:,1)), max(points(:,1)), 1000)
     options.calcError (1,1) logical = false
-    options.expression 
+    options.expression sym = sym([])
     options.showDetailed (1,1) logical = false
 end
 
-    syms x;
-    n = size(points, 1);  % Number of points based on rows of input
-    L = 0;                % Initialize the Lagrange polynomial
+% Symbolic variable setup
+syms x;
+n = size(points, 1);
+L_sym = sym(0);
 
-    % Loop through each point to construct the Lagrange basis polynomials
-    for i = 1:n
-        % Initialize the basis polynomial for the current i
-        L_i = 1;
-        for j = 1:n
-            if j ~= i
-                % Multiply terms for the basis polynomial L_i
-                L_i = L_i * (x - points(j, 1)) / (points(i, 1) - points(j, 1));
-            end
+% Construct Lagrange polynomial
+for i = 1:n
+    xi = points(i, 1);
+    yi = points(i, 2);
+    basis = sym(1);
+    
+    for j = 1:n
+        if j ~= i
+            xj = points(j, 1);
+            basis = basis * (x - xj) / (xi - xj);
         end
-        % Add the term to the Lagrange polynomial
-        L = L + points(i, 2) * L_i;
     end
-
-    % Display the Lagrange polynomial for verification
-    disp('Lagrange Polynomial, L(x):');
-    L = simplify(L);
-    L = vpa(L, 5);
-    disp(L);
-
-    if options.calcError
-        pol = options.expression;
-        e = 1;
-        for ii = 1:n
-            pol = diff(pol);
-            e = e * (x - points(ii, 1));
-        end
-        
-        range = [points(1,1), points(end,1)];
-        [PMax, ~] = GMaxMin(pol, range);
-        [eMax, ~] = GMaxMin(e, range);
-        if options.showDetailed
-            fprintf("%i derivative of original function:", n)
-            pol
-            fprintf("Polynomial equation for error:")
-            e
-            fprintf("Substituting %f in derivative and %f in error polynomial to maximize their values.\n", PMax(1), eMax(1))
-        end
-        EB = PMax(2)/factorial(n)*eMax(2);
-        fprintf("Error bound is %f for the interval [%.2f, %.2f]", EB, points(1,1), points(end,1));
-    end
-    if options.showPlot
-        x = options.xaxis;
-        plot(points(:,1), points(:,2), 'o', LineWidth=3, MarkerSize=5, DisplayName="Points")
-        hold on
-        plot(x, subs(L,x), LineWidth=3, DisplayName="Interpollated")
-        label 'Lagrange Polynomial Plot' 'x' 'L(x)'
-        legend show; grid on;
-        hold off
-    end
-    if ~ isempty(value), L = double(subs(L, value)); end
+    L_sym = L_sym + yi * basis;
 end
-% 
-% function L = lagrange(points, value, options)
-% arguments
-%     points (:, 2)
-%     value = ''
-%     options.showPlot = false
-%     options.xaxis (1,2) = [-size(points, 1)*10, size(points, 1)*10]
-% end
-% 
-%     syms x;
-%     n = size(points, 1);  % Number of points based on rows of input
-%     L = 0;                % Initialize the Lagrange polynomial
-% 
-%     % Loop through each point to construct the Lagrange basis polynomials
-%     for i = 1:n
-%         % Initialize the basis polynomial for the current i
-%         L_i = 1;
-%         for j = 1:n
-%             if j ~= i
-%                 % Multiply terms for the basis polynomial L_i
-%                 L_i = L_i * (x - points(j, 1)) / (points(i, 1) - points(j, 1));
-%             end
-%         end
-%         % Add the term to the Lagrange polynomial
-%         L = L + points(i, 2) * L_i;
-%     end
-% 
-%     % Display the Lagrange polynomial for verification
-%     disp('Lagrange Polynomial, L(x):');
-%     L = simplify(L);
-%     L = vpa(L, 5);
-%     disp(L);
-% 
-%     if options.showPlot
-%         fplot(L, options.xaxis, Marker="o", DisplayName="Data Points", MarkerSize=8, Linewidth=1.5,Color='r');
-%         hold on
-%         fplot(L, options.xaxis, LineWidth=2.5, DisplayName="Lagrange Polynomial", Color='b');
-%         label("Lagrange Polynomial Plot", "x", "L(x)")
-%         grid on
-%         hold off
-%         legend show
-%     end
-%     if ~ isempty(value), L = double(subs(L, value)); end
-% end
+
+% Simplify and prepare output
+L = simplify(L_sym);
+if ~isempty(value)
+    L = double(subs(L, x, value));
+end
+
+% Error bound calculation
+if options.calcError
+    if isempty(options.expression)
+        error('Original function expression required for error calculation');
+    end
+    
+    % Calculate nth derivative
+    f_deriv = options.expression;
+    for k = 1:n
+        f_deriv = diff(f_deriv);
+    end
+    
+    % Error term components
+    error_term = sym(1);
+    for k = 1:n
+        error_term = error_term * (x - points(k,1));
+    end
+    
+    % Manual maxima calculation
+    x_vals = linspace(min(points(:,1)), max(points(:,1)), 1000);
+    
+    % Evaluate derivatives
+    deriv_vals = double(subs(abs(f_deriv), x, x_vals));
+    [max_deriv, idx_deriv] = max(deriv_vals);
+    
+    % Evaluate error terms
+    error_vals = double(subs(abs(error_term), x, x_vals));
+    [max_error, idx_error] = max(error_vals);
+    
+    % Calculate error bound
+    error_bound = (max_deriv/factorial(n)) * max_error;
+    
+    % Detailed output
+    if options.showDetailed
+        fprintf('\n--- Error Calculation Details ---\n');
+        fprintf('Maximum %dth derivative: %.4f at x = %.4f\n', ...
+                n, max_deriv, x_vals(idx_deriv));
+        fprintf('Maximum error term: %.12f at x = %.4f\n', ...
+                max_error, x_vals(idx_error));
+        fprintf('Error bound: %.4e\n', error_bound);
+        fprintf('---------------------------------\n');
+    end
+end
+
+% Visualization
+if options.showPlot
+    figure;
+    plot(points(:,1), points(:,2), 'o', 'MarkerSize', 8, ...
+        'LineWidth', 2, 'DisplayName', 'Data Points');
+    hold on;
+    y_vals = double(subs(L_sym, x, options.xaxis));
+    plot(options.xaxis, y_vals, 'LineWidth', 2, ...
+         'DisplayName', 'Interpolation');
+    title('Lagrange Interpolation');
+    xlabel('x');
+    ylabel('P(x)');
+    legend show;
+    grid on;
+    hold off;
+end
+
+% Display polynomial if no output requested
+if nargout == 0
+    disp('Lagrange Interpolating Polynomial:');
+    (L_sym)
+end
+end
